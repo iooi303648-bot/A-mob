@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>찾아가는 A+++ 디지털 직무연수</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            touch-action: pan-y; /* 수직 스크롤 허용, 수평은 스와이프로 제어 */
+        }
+
+        .tracking-tight { letter-spacing: -0.022em; }
+        .tracking-tighter { letter-spacing: -0.05em; }
+        
+        .slide-container {
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .break-keep { word-break: keep-all; }
+        ::selection { background-color: rgba(0, 102, 204, 0.15); }
+
+        /* 모바일 환경에서 슬라이드 높이 최적화 */
+        @media (max-width: 1024px) {
+            .slide-canvas {
+                aspect-ratio: auto;
+                min-height: 80vh;
+                height: auto;
+            }
+            body { overflow-y: auto; }
+        }
+        
+        /* 인쇄 설정 */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; overflow: visible; }
+            .slide-canvas { 
+                width: 100% !important; 
+                box-shadow: none !important; 
+                border: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const Icon = ({ name, size = 24, className = "" }) => {
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const App = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+            const [isAnimating, setIsAnimating] = useState(false);
+            const touchStartX = useRef(null);
+            const touchEndX = useRef(null);
+
+            const slides = [
+                {
+                    id: 'slide-1',
+                    type: 'intro',
+                    subtitle: '디지털 교육의 미래',
+                    title: '찾아가는 A+++\n디지털 직무연수',
+                    meta: '부산 SW AI 교육운영 지원단\n동일중앙초등학교 김형준'
+                },
+                {
+                    id: 'slide-training-info',
+                    type: 'training-info',
+                    title: '연수 안내자료',
+                    description: '아래 자료를 확인해 주세요.',
+                    qrImage: 'https://lh3.googleusercontent.com/d/1nOBEGiC_08m3rFEUkKSdyryIW6yz6E9X',
+                    link: 'https://b.tkbell.co.kr/tkboard/woi/1255603/M99LYV5Fn0.do?pageSeq=2345803',
+                    linkText: '온라인 안내자료 바로가기'
+                },
+                {
+                    id: 'slide-section-01',
+                    type: 'section',
+                    number: '01',
+                    title: '캔바 AI',
+                    description: '매직 액티비티'
+                },
+                {
+                    id: 'slide-feature-canva',
+                    type: 'feature-image-canva',
+                    title: '캔바 AI - 매직 액티비티',
+                    content: [
+                        '역사 연표 등 복잡한 자료 시각화',
+                        '매직 스위치로 학습지 변환',
+                        '학생 개별 맞춤형 활동 생성'
+                    ],
+                    image: 'https://lh3.googleusercontent.com/d/12qvbfpiIxnTa4wpic73WOukonsDVQBfQ', 
+                    tagline: '데이터를 시각적 자료로 바꾸는 혁신',
+                    canvaLink: 'https://www.canva.com'
+                },
+                {
+                    id: 'slide-section-02',
+                    type: 'section',
+                    number: '02',
+                    title: '바이브 코딩',
+                    description: "창의성을 설계하다"
+                },
+                {
+                    id: 'slide-vibe-comparison',
+                    type: 'vibe-comparison',
+                    title: '전통적 도구를 넘어서',
+                    subtitle: '바이브 코딩만의 차별점',
+                    items: [
+                        { icon: 'zap', label: '상호작용', old: '정형화된 퀴즈', new: '양방향 상호작용', desc: 'AI와 대화하며 답을 찾아가는 과정을 설계합니다.' },
+                        { icon: 'database', label: '지능화', old: '닫힌 데이터셋', new: '실시간 AI 연동', desc: 'AI가 답변을 실시간 분석하고 맞춤 반응을 생성합니다.' },
+                        { icon: 'compass', label: '학습 경험', old: '일방향 진행', new: '유연한 탐구 활동', desc: '관심도에 따라 학습 경로가 자유롭게 확장됩니다.' }
+                    ]
+                },
+                {
+                    id: 'slide-game-examples',
+                    type: 'game-examples',
+                    title: '무엇이든 만드세요.',
+                    items: [
+                        { title: '음식 이상형 월드컵', image: 'https://lh3.googleusercontent.com/d/16t-yFNF10ovjWA224du46IHpH4qatC32', desc: '개념 우선순위를 정하는 토론 활동', icon: 'trophy' },
+                        { title: '속담 이어 말하기', image: 'https://lh3.googleusercontent.com/d/1iYjjEsOKyRjimdTChs_Sw7r8gJ0xrzuZ', desc: '실시간 문장 완성 AI 학습 게임', icon: 'gamepad-2' }
+                    ]
+                },
+                {
+                    id: 'slide-artifact-view',
+                    type: 'artifact-view',
+                    title: '발전된 바이브 코딩.',
+                    link: 'https://claude.ai/public/artifacts/2c9321c5-2b75-49c9-a3ac-e591939b46dc',
+                    image: 'https://lh3.googleusercontent.com/d/1GrDT_juLgLZT6kVx-YU-bUPTpmLbG03h',
+                    tagline: '인공지능 아티팩트로 구현한 고차원 학습 애플리케이션'
+                },
+                {
+                    id: 'slide-section-03',
+                    type: 'section',
+                    number: '03',
+                    title: '맞춤형 AI',
+                    description: '선생님을 위한 인공지능 비서'
+                },
+                {
+                    id: 'slide-ai-grid',
+                    type: 'ai-grid',
+                    title: '나만의 AI 전략',
+                    items: [
+                        { icon: 'cpu', title: '제미나이 젬 (Gems)', text: '업무 자동화 및 구글 도구 연동으로 시간을 단축합니다.' },
+                        { icon: 'wand-2', title: 'GPTs', text: '교육과정 기반의 개별 피드백 봇을 구축합니다.' }
+                    ]
+                },
+                {
+                    id: 'slide-gem-preview',
+                    type: 'gem-preview',
+                    title: '나만의 AI 경험하기.',
+                    subtitle: '교육 전용 비서',
+                    link: 'https://gemini.google.com/gem/6c28297703c4',
+                    desc: '코드 생성 및 시뮬레이션 설계에 특화된 전용 젬 활용 사례입니다.'
+                },
+                {
+                    id: 'slide-outro',
+                    type: 'outro',
+                    title: '감사합니다.',
+                    text: '디지털 교육의 미래, 함께 만들어갑니다.',
+                    meta: '동일중앙초등학교 김형준\n부산 SW AI 교육운영 지원단'
+                }
+            ];
+
+            const nextSlide = () => {
+                if (currentSlide < slides.length - 1 && !isAnimating) {
+                    setIsAnimating(true);
+                    setCurrentSlide(prev => prev + 1);
+                    setTimeout(() => setIsAnimating(false), 500);
+                }
+            };
+
+            const prevSlide = () => {
+                if (currentSlide > 0 && !isAnimating) {
+                    setIsAnimating(true);
+                    setCurrentSlide(prev => prev - 1);
+                    setTimeout(() => setIsAnimating(false), 500);
+                }
+            };
+
+            // 스와이프 핸들러
+            const handleTouchStart = (e) => {
+                touchStartX.current = e.targetTouches[0].clientX;
+            };
+            const handleTouchMove = (e) => {
+                touchEndX.current = e.targetTouches[0].clientX;
+            };
+            const handleTouchEnd = () => {
+                if (!touchStartX.current || !touchEndX.current) return;
+                const distance = touchStartX.current - touchEndX.current;
+                const isLeftSwipe = distance > 50;
+                const isRightSwipe = distance < -50;
+                if (isLeftSwipe) nextSlide();
+                if (isRightSwipe) prevSlide();
+                touchStartX.current = null;
+                touchEndX.current = null;
+            };
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+                    if (e.key === 'ArrowLeft') prevSlide();
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                lucide.createIcons();
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [currentSlide]);
+
+            useEffect(() => { lucide.createIcons(); }, [currentSlide, isAnimating]);
+
+            return (
+                <div 
+                    className="min-h-screen flex flex-col tracking-tight selection:bg-[#0066cc]/10"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {/* 상단바 */}
+                    <nav className="h-[44px] bg-black flex items-center justify-between px-4 lg:px-6 z-50 no-print">
+                        <div className="text-white opacity-90">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M9 0c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 2c-3.866 0-7 3.134-7 7s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7z"/></svg>
+                        </div>
+                        <div className="flex space-x-4 lg:space-x-12 text-[10px] lg:text-[11px] font-bold text-white/50 uppercase tracking-widest">
+                            <span className="hover:text-white transition-colors cursor-pointer">혁신</span>
+                            <span className="hover:text-white transition-colors cursor-pointer">디지털</span>
+                            <span className="hover:text-white transition-colors cursor-pointer">지원</span>
+                        </div>
+                        <div className="w-[18px]"></div>
+                    </nav>
+
+                    {/* 서브 내비게이션 */}
+                    <nav className="h-[52px] glass-nav border-b border-black/5 flex items-center justify-between px-4 lg:px-10 sticky top-0 z-40 no-print">
+                        <h2 className="text-[14px] lg:text-[19px] font-semibold text-[#1d1d1f] truncate mr-2">디지털 직무연수</h2>
+                        <div className="flex items-center gap-2 lg:gap-3">
+                             <button onClick={() => window.print()} className="bg-white border border-black/10 text-black text-[10px] lg:text-[11px] px-3 py-1.5 rounded-full font-bold active:scale-95 flex items-center gap-1.5 shadow-sm">
+                                <Icon name="printer" size={12} /> <span className="hidden sm:inline">PDF 저장</span>
+                            </button>
+                            <button className="bg-[#0066cc] text-white text-[10px] lg:text-[11px] px-4 py-1.5 rounded-full font-bold active:scale-95 shadow-md">
+                                발표 시작
+                            </button>
+                        </div>
+                    </nav>
+
+                    {/* 메인 발표 영역 */}
+                    <main className="flex-1 flex items-center justify-center p-2 lg:p-4 relative">
+                        {/* 점 네비게이션 (데스크톱 전용) */}
+                        <aside className="absolute left-6 top-1/2 -translate-y-1/2 hidden xl:flex flex-col space-y-3 z-30 no-print">
+                            {slides.map((_, idx) => (
+                                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-1 h-1 rounded-full transition-all duration-500 ${currentSlide === idx ? 'h-8 bg-[#0066cc]' : 'bg-black/10 hover:bg-black/30'}`} />
+                            ))}
+                        </aside>
+
+                        {/* 슬라이드 캔버스 */}
+                        <div className="slide-canvas relative w-full max-w-[1400px] bg-white rounded-[24px] lg:rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.1)] overflow-hidden border border-black/[0.02]">
+                            <div className={`w-full h-full p-6 lg:p-20 flex flex-col transition-all duration-700 ${isAnimating ? 'opacity-0 scale-[0.99] blur-md' : 'opacity-100 scale-100 blur-0'}`}>
+                                
+                                {slides[currentSlide].type === 'intro' && (
+                                    <div className="h-full flex flex-col justify-center space-y-6 lg:y-8">
+                                        <p className="text-[#0066cc] text-lg lg:text-2xl font-bold uppercase tracking-[0.2em] leading-none">디지털 교육의 미래</p>
+                                        <h1 className="text-[48px] lg:text-[110px] font-bold tracking-tighter leading-[1] whitespace-pre-line break-keep">{slides[currentSlide].title}</h1>
+                                        <div className="pt-8 lg:pt-16 text-[#86868b] text-lg lg:text-2xl font-medium leading-relaxed opacity-80 whitespace-pre-line break-keep">{slides[currentSlide].meta}</div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'training-info' && (
+                                    <div className="h-full flex flex-col items-center justify-center text-center space-y-8 lg:space-y-10">
+                                        <div className="space-y-4">
+                                            <h2 className="text-4xl lg:text-6xl font-bold tracking-tighter break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                            <p className="text-[#86868b] text-xl lg:text-2xl font-medium tracking-tight break-keep">{slides[currentSlide].description}</p>
+                                        </div>
+                                        <div className="flex flex-col items-center space-y-6 lg:space-y-8">
+                                            <div className="p-4 lg:p-6 bg-[#f5f5f7] rounded-[24px] lg:rounded-[32px] border border-black/5 shadow-sm">
+                                                <img src={slides[currentSlide].qrImage} className="w-full max-w-[180px] lg:max-w-[240px] aspect-square object-contain" alt="QR" />
+                                            </div>
+                                            <a href={slides[currentSlide].link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 lg:gap-3 bg-[#0066cc] px-8 py-4 lg:px-10 lg:py-5 rounded-full text-white font-bold text-lg lg:text-xl hover:bg-[#0077ee] transition-all shadow-md active:scale-95">
+                                                <Icon name="link-2" size={20} /> {slides[currentSlide].linkText}
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'section' && (
+                                    <div className="h-full flex flex-col justify-center text-center space-y-4 lg:space-y-6">
+                                        <div className="text-[#0066cc] text-[120px] lg:text-[200px] font-bold opacity-[0.03] absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 scale-150 pointer-events-none tracking-tighter w-full tabular-nums text-center">{slides[currentSlide].number}</div>
+                                        <h2 className="text-6xl lg:text-[140px] font-bold tracking-tighter z-10 break-keep">{slides[currentSlide].title}</h2>
+                                        <p className="text-[#86868b] text-2xl lg:text-4xl font-medium tracking-tight z-10 break-keep leading-tight">{slides[currentSlide].description}</p>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'feature-image-canva' && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16 items-center h-full">
+                                        <div className="lg:col-span-2 space-y-8 lg:space-y-12 order-2 lg:order-1">
+                                            <h2 className="text-3xl lg:text-6xl font-bold tracking-tighter break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                            <ul className="space-y-4 lg:space-y-8">
+                                                {slides[currentSlide].content.map((item, i) => (
+                                                    <li key={i} className="flex items-start gap-3 lg:gap-5 text-lg lg:text-2xl text-[#86868b] font-medium leading-tight break-keep">
+                                                        <div className="mt-1.5 lg:mt-2.5 w-2 h-2 rounded-full bg-[#0066cc] shrink-0" />
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <a href={slides[currentSlide].canvaLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[#0066cc] font-bold text-lg lg:text-xl hover:underline">
+                                                Canva 바로가기 <Icon name="chevron-right" size={20} />
+                                            </a>
+                                        </div>
+                                        <div className="lg:col-span-3 flex flex-col items-center justify-center order-1 lg:order-2">
+                                            <div className="w-full rounded-[24px] lg:rounded-[40px] overflow-hidden shadow-2xl border border-black/5 bg-[#f5f5f7]">
+                                                <img src={slides[currentSlide].image} className="w-full h-auto max-h-[300px] lg:max-h-[500px] object-contain" />
+                                            </div>
+                                            <p className="mt-4 lg:mt-8 text-[#86868b] text-[10px] lg:text-sm font-bold tracking-[0.4em] uppercase break-keep">{slides[currentSlide].tagline}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'vibe-comparison' && (
+                                    <div className="h-full flex flex-col">
+                                        <div className="mb-6 lg:mb-10 space-y-1 lg:space-y-2">
+                                            <h3 className="text-[#0066cc] text-base lg:text-xl font-bold uppercase tracking-widest leading-none">바이브 코딩의 강점</h3>
+                                            <h2 className="text-3xl lg:text-7xl font-bold tracking-tighter break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                        </div>
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 flex-1">
+                                            {slides[currentSlide].items.map((item, i) => (
+                                                <div key={i} className="bg-[#f5f5f7]/60 p-5 lg:p-10 rounded-[24px] lg:rounded-[32px] flex flex-col border border-black/[0.02] hover:bg-white transition-all">
+                                                    <div className="mb-4 lg:mb-8 p-2 lg:p-3 bg-white rounded-xl w-fit shadow-sm"><Icon name={item.icon} className="text-[#0066cc]" size={24} /></div>
+                                                    <div className="mb-3 lg:mb-6">
+                                                        <p className="text-[#86868b] text-[10px] font-bold uppercase tracking-widest mb-1 opacity-60 leading-none">{item.label}</p>
+                                                        <h4 className="text-xl lg:text-3xl font-bold tracking-tight break-keep">{item.new}</h4>
+                                                    </div>
+                                                    <div className="mt-auto pt-4 lg:pt-8 border-t border-black/5">
+                                                        <div className="text-[11px] lg:text-sm text-[#86868b] opacity-40 font-bold mb-2 flex items-center gap-2"><span className="w-4 h-px bg-current" />기존: {item.old}</div>
+                                                        <p className="text-sm lg:text-lg text-[#86868b] leading-snug font-medium break-keep">{item.desc}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'game-examples' && (
+                                    <div className="space-y-8 lg:space-y-16 h-full flex flex-col justify-center">
+                                        <h2 className="text-4xl lg:text-7xl font-bold tracking-tighter break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                                            {slides[currentSlide].items.map((item, i) => (
+                                                <div key={i} className="group flex flex-col">
+                                                    <div className="rounded-[24px] lg:rounded-[40px] overflow-hidden shadow-xl border border-black/5 aspect-video bg-[#f5f5f7] mb-4 flex items-center justify-center">
+                                                        <img src={item.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.title} />
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className="p-2 rounded-xl bg-[#f5f5f7] text-[#0066cc]"><Icon name={item.icon} size={24} /></div>
+                                                        <h3 className="text-xl lg:text-3xl font-bold tracking-tight break-keep">{item.title}</h3>
+                                                    </div>
+                                                    <p className="text-[#86868b] text-sm lg:text-xl font-medium leading-snug break-keep">{item.desc}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'artifact-view' && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center h-full">
+                                        <div className="space-y-6 lg:space-y-12 order-2 lg:order-1">
+                                            <div className="inline-flex items-center gap-2 lg:gap-3 bg-[#f5f5f7] px-4 py-2 lg:px-6 lg:py-3 rounded-full text-[#0066cc] font-bold text-xs lg:text-sm uppercase tracking-wider leading-none">
+                                                <Icon name="brain-circuit" size={20} /> 즉각적인 개발
+                                            </div>
+                                            <h2 className="text-4xl lg:text-8xl font-bold tracking-tighter leading-none break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                            <p className="text-lg lg:text-3xl text-[#86868b] leading-tight font-medium break-keep">수학 퍼즐이나 활동이 AI를 통해 앱으로 즉각 구현됩니다.</p>
+                                            <a href={slides[currentSlide].link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 text-[#0066cc] font-bold hover:underline text-xl lg:text-2xl no-print leading-none">아티팩트 실행하기 <Icon name="external-link" size={24} /></a>
+                                        </div>
+                                        <div className="rounded-[24px] lg:rounded-[48px] overflow-hidden shadow-2xl bg-white border border-black/5 p-4 lg:p-10 flex items-center justify-center order-1 lg:order-2">
+                                            <img src={slides[currentSlide].image} className="w-full h-auto max-h-[300px] lg:max-h-[500px] object-contain" alt="결과물" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'ai-grid' && (
+                                    <div className="h-full flex flex-col justify-center space-y-10 lg:space-y-16">
+                                        <h2 className="text-4xl lg:text-7xl font-bold tracking-tighter text-center break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 max-w-6xl mx-auto w-full text-center">
+                                            {slides[currentSlide].items.map((item, i) => (
+                                                <div key={i} className="bg-[#f5f5f7]/80 p-8 lg:p-16 rounded-[32px] lg:rounded-[48px] text-center space-y-6 border border-black/[0.01] hover:bg-white transition-all">
+                                                    <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto text-[#0066cc]"><Icon name={item.icon} size={32} /></div>
+                                                    <div className="space-y-4">
+                                                        <h3 className="text-2xl lg:text-4xl font-bold tracking-tight break-keep">{item.title}</h3>
+                                                        <p className="text-[#86868b] text-base lg:text-xl font-medium leading-relaxed break-keep">{item.text}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'gem-preview' && (
+                                    <div className="h-full flex flex-col justify-center items-center text-center space-y-10 lg:space-y-16">
+                                        <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-[#0066cc] to-[#55aaff] rounded-3xl flex items-center justify-center text-white shadow-xl animate-pulse">
+                                            <Icon name="sparkles" size={40} />
+                                        </div>
+                                        <div className="space-y-4 lg:space-y-6">
+                                            <h3 className="text-[#0066cc] text-xl lg:text-2xl font-bold uppercase tracking-[0.4em] opacity-80 leading-none">혁신 파트너</h3>
+                                            <h2 className="text-5xl lg:text-9xl font-bold tracking-tighter break-keep leading-tight">{slides[currentSlide].title}</h2>
+                                        </div>
+                                        <p className="text-xl lg:text-3xl text-[#86868b] max-w-4xl mx-auto font-medium leading-snug break-keep">{slides[currentSlide].desc}</p>
+                                        <a href={slides[currentSlide].link} target="_blank" className="bg-[#1d1d1f] text-white px-8 py-4 lg:px-12 lg:py-5 rounded-full text-lg lg:text-2xl font-bold active:scale-95 shadow-xl hover:bg-black no-print leading-none">제미나이 젬 경험하기</a>
+                                    </div>
+                                )}
+
+                                {slides[currentSlide].type === 'outro' && (
+                                    <div className="h-full flex flex-col justify-center text-center space-y-10 lg:space-y-16">
+                                        <h1 className="text-[64px] lg:text-[160px] font-bold tracking-tighter text-[#1d1d1f] leading-none break-keep leading-tight">{slides[currentSlide].title}</h1>
+                                        <div className="space-y-4">
+                                            <p className="text-2xl lg:text-5xl text-[#0066cc] font-bold tracking-tight break-keep">디지털 교육의 미래, 함께 만듭니다.</p>
+                                            <p className="text-lg lg:text-3xl font-medium pt-8 whitespace-pre-line leading-relaxed opacity-60 break-keep leading-snug">{slides[currentSlide].meta}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                            </div>
+
+                            {/* 컨트롤 버튼 (우측 하단) */}
+                            <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-12 flex items-center gap-3 no-print">
+                                <button onClick={prevSlide} disabled={currentSlide === 0} className="p-3 lg:p-3.5 rounded-full bg-black/5 hover:bg-black/10 disabled:opacity-0 transition-all active:scale-90">
+                                    <Icon name="chevron-left" size={20} />
+                                </button>
+                                <div className="text-[11px] lg:text-xs font-bold text-black/20 tracking-widest px-1 tabular-nums leading-none">
+                                    {String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+                                </div>
+                                <button onClick={nextSlide} disabled={currentSlide === slides.length - 1} className="p-3 lg:p-3.5 rounded-full bg-black/5 hover:bg-black/10 disabled:opacity-0 transition-all active:scale-90">
+                                    <Icon name="chevron-right" size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* 푸터 */}
+                    <footer className="h-10 lg:h-12 flex items-center justify-center px-10 text-[9px] lg:text-[11px] text-[#86868b] font-bold tracking-[0.4em] uppercase opacity-30 no-print">
+                        <span>Busan SW AI Training • 2026</span>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
